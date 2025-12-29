@@ -8,6 +8,8 @@ import CursorEffect from '@/components/CursorEffect'
 import AboutSection from '@/components/AboutSection'
 import Skills from '@/components/Skills'
 import Footer from '@/components/Footer'
+import AsciiVideo from '@/components/AsciiVideo'
+import MushroomScroll from '@/components/MushroomScroll'
 
 const Home: FC = () => {
     return (
@@ -27,7 +29,15 @@ const Home: FC = () => {
 
             <AboutSection />
 
-            <div className="w-screen flex flex-col items-center justify-start gap-10 relative pt-32 pb-64">
+            <div className="w-screen flex flex-col items-center justify-center gap-10 relative">
+                <AsciiVideo
+                    src="/Fire.mp4"
+                    charSize={20}
+                    className="drop-shadow-md"
+                />
+            </div>
+
+            <div className="w-screen flex flex-col items-center justify-start gap-10 relative pt-32 pb-64 overflow-hidden">
                 <BackgroundGrid style="-|" oddColumns={true} />
                 <Heading level="h2" className="relative z-10">
                     skills
@@ -36,6 +46,8 @@ const Home: FC = () => {
                     <Skills alignWithGrid={true} gridSpacing={100} />
                 </div>
             </div>
+
+            {/* <MushroomScroll /> */}
 
             <Footer />
         </>

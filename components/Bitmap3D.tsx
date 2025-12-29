@@ -12,7 +12,7 @@ const SpinningEye: FC<{ mouseVelocity: number }> = ({ mouseVelocity }) => {
     const orbitRef = useRef<THREE.Group>(null)
     const { scene } = useGLTF('/eye.glb')
 
-    useFrame(state => {
+    useFrame((state, delta) => {
         if (groupRef.current) {
             const speed = 0.001 + mouseVelocity * 0.015
             groupRef.current.rotation.x += speed
@@ -31,6 +31,8 @@ const SpinningEye: FC<{ mouseVelocity: number }> = ({ mouseVelocity }) => {
             const zOscillation = Math.cos(state.clock.elapsedTime * 0.25) * 1.5
             orbitRef.current.position.z = zOscillation
         }
+
+        state.invalidate() // Only re-render when needed
     })
 
     return (
@@ -163,34 +165,40 @@ const Bitmap3D: FC = () => {
     const lastTime = useRef(Date.now())
 
     useEffect(() => {
+        let rafId: number | null = null
+
         const handleMouseMove = (e: MouseEvent) => {
-            const now = Date.now()
-            const dt = Math.max(now - lastTime.current, 1) / 1000 // Convert to seconds
+            if (rafId !== null) return // Throttle to one update per frame
 
-            const dx = e.clientX - lastMousePos.current.x
-            const dy = e.clientY - lastMousePos.current.y
-            const distance = Math.sqrt(dx * dx + dy * dy)
+            rafId = requestAnimationFrame(() => {
+                const now = Date.now()
+                const dt = Math.max(now - lastTime.current, 1) / 1000
 
-            // Calculate velocity (pixels per second)
-            const velocity = distance / dt / 1000 // Normalize to reasonable range
+                const dx = e.clientX - lastMousePos.current.x
+                const dy = e.clientY - lastMousePos.current.y
+                const distance = Math.sqrt(dx * dx + dy * dy)
 
-            // Smooth the velocity with exponential decay
-            setMouseVelocity(prev => prev * 0.8 + velocity * 0.2)
+                const velocity = distance / dt / 1000
 
-            lastMousePos.current = { x: e.clientX, y: e.clientY }
-            lastTime.current = now
+                setMouseVelocity(prev => prev * 0.8 + velocity * 0.2)
+
+                lastMousePos.current = { x: e.clientX, y: e.clientY }
+                lastTime.current = now
+                rafId = null
+            })
         }
 
-        window.addEventListener('mousemove', handleMouseMove)
+        window.addEventListener('mousemove', handleMouseMove, { passive: true })
 
-        // Decay velocity when mouse stops moving
+        // Decay velocity when mouse stops moving (reduced frequency)
         const decayInterval = setInterval(() => {
             setMouseVelocity(prev => prev * 0.95)
-        }, 50)
+        }, 100)
 
         return () => {
             window.removeEventListener('mousemove', handleMouseMove)
             clearInterval(decayInterval)
+            if (rafId !== null) cancelAnimationFrame(rafId)
         }
     }, [])
 
@@ -231,7 +239,8 @@ const Bitmap3D: FC = () => {
                     powerPreference: 'high-performance',
                     alpha: true,
                 }}
-                dpr={[1, 1.5]}
+                dpr={1}
+                frameloop="demand"
             >
                 <ambientLight intensity={0.3} />
                 <directionalLight position={[5, 5, 5]} intensity={1.2} />
