@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import AboutSection from "@/components/AboutSection";
 import AsciiVideoSection from "@/components/AsciiVideoSection";
+import ExperienceSection from "@/components/ExperienceSection";
 import FooterSection from "@/components/FooterSection";
 import HeroSection from "@/components/HeroSection";
 import ProcessSection from "@/components/ProcessSection";
@@ -17,6 +18,8 @@ const Home: FC = () => {
       </div>
 
       <SkillsSection />
+
+      <ExperienceSection />
 
       <ProcessSection />
 

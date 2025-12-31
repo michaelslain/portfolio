@@ -151,7 +151,9 @@ const ProcessSection: FC = () => {
                 {/* First Text - Left */}
                 <div className="absolute left-8 md:left-16 lg:left-24 top-[20%] pointer-events-auto z-10 max-w-md">
                     <div className="bg-background/80 p-4 rounded">
-                        <Text className="font-mono md:text-lg">01.</Text>
+                        <Text className="font-mono md:text-lg text-accent">
+                            01.
+                        </Text>
                         <Text>
                             Lorem ipsum dolor sit amet, consectetur adipiscing
                             elit, sed do eiusmod tempor incididunt ut labore et
@@ -169,7 +171,9 @@ const ProcessSection: FC = () => {
                 {/* Second Text - Right */}
                 <div className="absolute right-8 md:right-16 lg:right-24 top-[40%] pointer-events-auto z-10 max-w-md">
                     <div className="bg-background/80 p-4 rounded">
-                        <Text className="font-mono md:text-lg">02.</Text>
+                        <Text className="font-mono md:text-lg text-accent">
+                            02.
+                        </Text>
                         <Text>
                             Lorem ipsum dolor sit amet, consectetur adipiscing
                             elit, sed do eiusmod tempor incididunt ut labore et
@@ -187,7 +191,9 @@ const ProcessSection: FC = () => {
                 {/* Third Text - Left */}
                 <div className="absolute left-8 md:left-16 lg:left-24 top-[60%] pointer-events-auto z-10 max-w-md">
                     <div className="bg-background/80 p-4 rounded">
-                        <Text className="font-mono md:text-lg">03.</Text>
+                        <Text className="font-mono md:text-lg text-accent">
+                            03.
+                        </Text>
                         <Text>
                             Lorem ipsum dolor sit amet, consectetur adipiscing
                             elit, sed do eiusmod tempor incididunt ut labore et
