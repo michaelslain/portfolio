@@ -1,82 +1,110 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, FC, ReactNode, useState } from 'react'
-import { usePathname } from 'next/navigation'
+import {
+  useEffect,
+  useRef,
+  FC,
+  ReactNode,
+  createContext,
+  useContext,
+} from "react";
+import { usePathname } from "next/navigation";
+
+interface ScrollContextType {
+  scroll: any | null;
+}
+
+const ScrollContext = createContext<ScrollContextType>({ scroll: null });
+
+export const useLocomotiveScroll = () => useContext(ScrollContext);
 
 interface SmoothScrollProps {
-    children: ReactNode
+  children: ReactNode;
 }
 
 const SmoothScroll: FC<SmoothScrollProps> = ({ children }) => {
-    const scrollRef = useRef<HTMLDivElement>(null)
-    const pathname = usePathname()
-    const scrollInstance = useRef<any>(null)
-    const [isReady, setIsReady] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const scrollInstance = useRef<any>(null);
 
-    useEffect(() => {
-        let scroll: any
+  useEffect(() => {
+    let scroll: any;
 
-        const initScroll = async () => {
-            if (!scrollRef.current) return
+    const initScroll = async () => {
+      if (!scrollRef.current) return;
 
-            const LocomotiveScroll = (await import('locomotive-scroll')).default
+      // Wait for DOM to be fully ready
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-            scroll = new LocomotiveScroll({
-                el: scrollRef.current,
-                smooth: true,
-            })
+      const LocomotiveScroll = (await import("locomotive-scroll")).default;
 
-            scrollInstance.current = scroll
+      scroll = new LocomotiveScroll({
+        el: scrollRef.current,
+        smooth: true,
+        multiplier: 1,
+        class: "is-inview",
+      });
 
-            // Restore scroll position from localStorage
-            const savedScrollPosition = localStorage.getItem('scrollPosition')
-            if (savedScrollPosition) {
-                const scrollPos = parseFloat(savedScrollPosition)
-                // Immediately scroll to position
-                scroll.scrollTo(scrollPos, {
-                    duration: 0,
-                    disableLerp: true,
-                })
-                // Show content after a brief delay
-                setTimeout(() => {
-                    setIsReady(true)
-                }, 100)
-            } else {
-                // No saved position, show immediately
-                setIsReady(true)
-            }
+      scrollInstance.current = scroll;
 
-            // Save scroll position on scroll
-            scroll.on('scroll', (args: any) => {
-                localStorage.setItem('scrollPosition', args.scroll.y.toString())
-            })
+      // Expose scroll instance globally for other components
+      (window as any).__locomotiveScroll = scroll;
 
-            // Force update on initialization
-            setTimeout(() => {
-                scroll.update()
-            }, 100)
-        }
+      // Multiple updates to ensure DOM is fully rendered
+      setTimeout(() => {
+        if (scroll) scroll.update();
+      }, 100);
 
-        initScroll()
+      setTimeout(() => {
+        if (scroll) scroll.update();
+      }, 500);
 
-        return () => {
-            if (scroll) scroll.destroy()
-        }
-    }, [pathname]) // Recreate scroll instance when route changes
+      setTimeout(() => {
+        if (scroll) scroll.update();
+      }, 1000);
+    };
 
-    return (
-        <div
-            ref={scrollRef}
-            data-scroll-container
-            style={{
-                overflow: 'visible',
-                opacity: isReady ? 1 : 0,
-                transition: 'opacity 0.1s',
-            }}
-        >
-            {children}
-        </div>
-    )
-}
+    initScroll();
 
-export default SmoothScroll
+    // Update on window resize
+    const handleResize = () => {
+      if (scroll) {
+        // Call update multiple times to catch layout changes
+        scroll.update();
+        setTimeout(() => scroll.update(), 100);
+        setTimeout(() => scroll.update(), 300);
+      }
+    };
+
+    let resizeTimeout: NodeJS.Timeout;
+    const debouncedResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 250);
+    };
+
+    window.addEventListener("resize", debouncedResize);
+
+    return () => {
+      window.removeEventListener("resize", debouncedResize);
+      if (scroll) {
+        scroll.destroy();
+        (window as any).__locomotiveScroll = null;
+      }
+    };
+  }, [pathname]);
+
+  return (
+    <div
+      ref={scrollRef}
+      data-scroll-container
+      style={{
+        overflow: "visible",
+        perspective: "1px",
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+
+export default SmoothScroll;

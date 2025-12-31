@@ -1,88 +1,10 @@
-'use client'
+"use client";
 
-import { type FC, useMemo, useRef, useState, useEffect } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { useGLTF } from '@react-three/drei'
-import { EffectComposer } from '@react-three/postprocessing'
-import { Effect, BlendFunction } from 'postprocessing'
-import * as THREE from 'three'
-
-const SpinningEye: FC<{ mouseVelocity: number }> = ({ mouseVelocity }) => {
-    const groupRef = useRef<THREE.Group>(null)
-    const orbitRef = useRef<THREE.Group>(null)
-    const { scene } = useGLTF('/eye.glb')
-
-    useFrame((state, delta) => {
-        if (groupRef.current) {
-            const speed = 0.001 + mouseVelocity * 0.015
-            groupRef.current.rotation.x += speed
-            groupRef.current.rotation.z += speed * 0.5
-        }
-
-        if (orbitRef.current) {
-            const orbitSpeed = 0.1
-            const orbitRadius = 1.5
-            const orbitAngle = state.clock.elapsedTime * orbitSpeed + Math.PI
-
-            orbitRef.current.position.x = Math.sin(orbitAngle) * orbitRadius
-            orbitRef.current.position.y =
-                Math.cos(orbitAngle * 1.5) * orbitRadius * 0.5
-
-            const zOscillation = Math.cos(state.clock.elapsedTime * 0.25) * 1.5
-            orbitRef.current.position.z = zOscillation
-        }
-
-        state.invalidate() // Only re-render when needed
-    })
-
-    return (
-        <group ref={orbitRef}>
-            <group ref={groupRef}>
-                <primitive object={scene} scale={[3.5, 3.5, 3.5]} />
-            </group>
-        </group>
-    )
-}
-
-const SpinningSunflower: FC<{ mouseVelocity: number }> = ({
-    mouseVelocity,
-}) => {
-    const groupRef = useRef<THREE.Group>(null)
-    const orbitRef = useRef<THREE.Group>(null)
-    const { scene } = useGLTF('/sunflower.glb')
-
-    useFrame(state => {
-        if (groupRef.current) {
-            const speed = 0.002 + mouseVelocity * 0.02
-            // Reversed rotation direction (negative values)
-            groupRef.current.rotation.x -= speed * 2
-            groupRef.current.rotation.y -= speed
-        }
-
-        if (orbitRef.current) {
-            // Orbital rotation - slow circular motion
-            const orbitSpeed = 0.15
-            const orbitRadius = 1.2
-            const orbitAngle = state.clock.elapsedTime * orbitSpeed
-
-            orbitRef.current.position.x = Math.sin(orbitAngle) * orbitRadius
-            orbitRef.current.position.y =
-                Math.cos(orbitAngle * 1.3) * orbitRadius * 0.6
-
-            // Oscillate distance from camera (z-axis)
-            const zOscillation = Math.sin(state.clock.elapsedTime * 0.2) * 2
-            orbitRef.current.position.z = zOscillation
-        }
-    })
-
-    return (
-        <group ref={orbitRef}>
-            <group ref={groupRef}>
-                <primitive object={scene} scale={[2.5, 2.5, 2.5]} />
-            </group>
-        </group>
-    )
-}
+import { type FC, type ReactNode, useMemo } from "react";
+import { Canvas } from "@react-three/fiber";
+import { EffectComposer } from "@react-three/postprocessing";
+import { Effect, BlendFunction } from "postprocessing";
+import * as THREE from "three";
 
 const halftoneFragmentShader = `
 uniform float time;
@@ -118,146 +40,87 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
     // Use dot pattern to determine final output
     outputColor = vec4(finalColor, dots * 0.8 + texel.a * (1.0 - dots) * 0.2);
 }
-`
+`;
 
-class HalftoneEffect extends Effect {
-    constructor() {
-        super('HalftoneEffect', halftoneFragmentShader, {
-            blendFunction: BlendFunction.NORMAL,
-            uniforms: new Map<string, THREE.Uniform<any>>([
-                ['time', new THREE.Uniform(0)],
-                ['accentColor', new THREE.Uniform(new THREE.Color('#b00020'))],
-                [
-                    'resolution',
-                    new THREE.Uniform(new THREE.Vector2(1920, 1080)),
-                ],
-            ]),
-        })
+class HalftoneEffectImpl extends Effect {
+  constructor() {
+    super("HalftoneEffect", halftoneFragmentShader, {
+      blendFunction: BlendFunction.NORMAL,
+      uniforms: new Map([
+        ["time", new THREE.Uniform(0)],
+        ["accentColor", new THREE.Uniform(new THREE.Color("#b00020"))],
+        ["resolution", new THREE.Uniform(new THREE.Vector2(1920, 1080))],
+      ]),
+    });
+  }
+
+  update(
+    renderer: THREE.WebGLRenderer,
+    inputBuffer: THREE.WebGLRenderTarget,
+    deltaTime?: number,
+  ) {
+    const timeUniform = this.uniforms.get("time");
+    const resolutionUniform = this.uniforms.get("resolution");
+
+    if (timeUniform) {
+      timeUniform.value += deltaTime || 0;
     }
 
-    update(
-        renderer: THREE.WebGLRenderer,
-        inputBuffer: THREE.WebGLRenderTarget,
-        deltaTime?: number,
-    ) {
-        this.uniforms.get('time')!.value += deltaTime || 0
-
-        // Update resolution based on actual render size
-        const size = renderer.getSize(new THREE.Vector2())
-        this.uniforms.get('resolution')!.value.set(size.x, size.y)
+    if (resolutionUniform) {
+      const size = renderer.getSize(new THREE.Vector2());
+      resolutionUniform.value.set(size.x, size.y);
     }
+  }
 }
 
-const HalftonePostProcess: FC = () => {
-    const effect = useMemo(() => new HalftoneEffect(), [])
 
-    return (
+interface Bitmap3DProps {
+  children: ReactNode;
+  className?: string;
+  ambientIntensity?: number;
+  directionalIntensity?: number;
+  pointIntensity?: number;
+}
+
+const Bitmap3D: FC<Bitmap3DProps> = ({
+  children,
+  className = "fixed top-0 left-0 w-screen h-[200vh] -z-50 pointer-events-none overflow-hidden",
+  ambientIntensity = 0.3,
+  directionalIntensity = 1.2,
+  pointIntensity = 0.8,
+}) => {
+  const effect = useMemo(() => new HalftoneEffectImpl(), []);
+
+  return (
+    <div className={className}>
+      <Canvas
+        camera={{ position: [0, 0, 8] }}
+        style={{ width: "100%", height: "100%" }}
+        gl={{
+          antialias: false,
+          powerPreference: "high-performance",
+          alpha: true,
+        }}
+        dpr={1}
+        frameloop="demand"
+      >
+        <ambientLight intensity={ambientIntensity} />
+        <directionalLight position={[5, 5, 5]} intensity={directionalIntensity} />
+        <pointLight
+          position={[-3, -3, 3]}
+          intensity={pointIntensity}
+          color="#ffffff"
+        />
+
+        {children}
+
         <EffectComposer>
-            <primitive object={effect} />
+          <primitive object={effect} />
         </EffectComposer>
-    )
-}
+      </Canvas>
+    </div>
+  );
+};
 
-const Bitmap3D: FC = () => {
-    const [mouseVelocity, setMouseVelocity] = useState(0)
-    const [isVisible, setIsVisible] = useState(true)
-    const lastMousePos = useRef({ x: 0, y: 0 })
-    const lastTime = useRef(Date.now())
-
-    useEffect(() => {
-        let rafId: number | null = null
-
-        const handleMouseMove = (e: MouseEvent) => {
-            if (rafId !== null) return // Throttle to one update per frame
-
-            rafId = requestAnimationFrame(() => {
-                const now = Date.now()
-                const dt = Math.max(now - lastTime.current, 1) / 1000
-
-                const dx = e.clientX - lastMousePos.current.x
-                const dy = e.clientY - lastMousePos.current.y
-                const distance = Math.sqrt(dx * dx + dy * dy)
-
-                const velocity = distance / dt / 1000
-
-                setMouseVelocity(prev => prev * 0.8 + velocity * 0.2)
-
-                lastMousePos.current = { x: e.clientX, y: e.clientY }
-                lastTime.current = now
-                rafId = null
-            })
-        }
-
-        window.addEventListener('mousemove', handleMouseMove, { passive: true })
-
-        // Decay velocity when mouse stops moving (reduced frequency)
-        const decayInterval = setInterval(() => {
-            setMouseVelocity(prev => prev * 0.95)
-        }, 100)
-
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove)
-            clearInterval(decayInterval)
-            if (rafId !== null) cancelAnimationFrame(rafId)
-        }
-    }, [])
-
-    useEffect(() => {
-        const handleScroll = () => {
-            const scrollTop = window.scrollY
-            const windowHeight = window.innerHeight
-
-            // Component is visible if we're within the first screen height
-            // Since the container is h-[200vh], we check if scrollTop is less than one viewport
-            const newVisibility = scrollTop < windowHeight
-            setIsVisible(newVisibility)
-        }
-
-        handleScroll() // Check on mount
-        window.addEventListener('scroll', handleScroll)
-
-        return () => {
-            window.removeEventListener('scroll', handleScroll)
-        }
-    }, [])
-
-    useEffect(() => {
-        console.log('Bitmap3D isVisible:', isVisible)
-    }, [isVisible])
-
-    if (!isVisible) {
-        return null
-    }
-
-    return (
-        <div className="fixed top-0 left-0 w-screen h-[200vh] -z-50 pointer-events-none overflow-hidden">
-            <Canvas
-                camera={{ position: [0, 0, 8] }}
-                style={{ background: 'transparent' }}
-                gl={{
-                    antialias: false,
-                    powerPreference: 'high-performance',
-                    alpha: true,
-                }}
-                dpr={1}
-                frameloop="demand"
-            >
-                <ambientLight intensity={0.3} />
-                <directionalLight position={[5, 5, 5]} intensity={1.2} />
-                <pointLight
-                    position={[-3, -3, 3]}
-                    intensity={0.8}
-                    color="#ffffff"
-                />
-
-                {/* The actual 3D model that spins */}
-                <SpinningEye mouseVelocity={mouseVelocity} />
-
-                {/* Post-processing halftone effect */}
-                <HalftonePostProcess />
-            </Canvas>
-        </div>
-    )
-}
-
-export default Bitmap3D
+export default Bitmap3D;
+export { HalftoneEffectImpl };

@@ -1,14 +1,14 @@
-import type { NextConfig } from 'next'
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-    experimental: {
-        turbo: {
-            resolveAlias: {
-                'framer-motion': 'framer-motion',
-            },
-        },
+  experimental: {
+    turbo: {
+      resolveAlias: {
+        "framer-motion": "framer-motion",
+      },
     },
-    transpilePackages: ['framer-motion'],
-}
+  },
+  transpilePackages: ["framer-motion"],
+};
 
-export default nextConfig
+export default nextConfig;

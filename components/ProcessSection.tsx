@@ -1,0 +1,135 @@
+"use client";
+
+import { useGLTF } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
+import { type FC, useEffect, useMemo, useRef, useState } from "react";
+import * as THREE from "three";
+import Bitmap3D from "@/components/Bitmap3D";
+import Section from "@/components/Section";
+
+const SpinningFish: FC<{ scrollProgress: number; isSticky: boolean }> = ({
+  scrollProgress,
+  isSticky,
+}) => {
+  const groupRef = useRef<THREE.Group>(null);
+  const { scene } = useGLTF("/fish.glb");
+
+  const clonedScene = useMemo(() => scene.clone(), [scene]);
+
+  useEffect(() => {
+    if (clonedScene) {
+      const box = new THREE.Box3().setFromObject(clonedScene);
+      const center = box.getCenter(new THREE.Vector3());
+
+      clonedScene.position.set(-center.x, -center.y, -center.z);
+    }
+  }, [clonedScene]);
+
+  useFrame(() => {
+    if (groupRef.current && isSticky) {
+      const rotation = scrollProgress * Math.PI * 2;
+      groupRef.current.rotation.y = rotation;
+    }
+  });
+
+  return (
+    <group position={[0, 0, -20]}>
+      <group ref={groupRef}>
+        <primitive object={clonedScene} scale={[10, 10, 10]} />
+      </group>
+    </group>
+  );
+};
+
+const ProcessSection: FC = () => {
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [isSticky, setIsSticky] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+
+    element.setAttribute('data-scroll', '');
+
+    const handleScroll = (args: any) => {
+      const elementProgress = args.currentElements?.['fish-container'];
+
+      if (elementProgress) {
+        const progress = elementProgress.progress || 0;
+        console.log('Fish scroll progress:', progress);
+
+        // Fish becomes sticky when we're scrolling through the section
+        // Progress should be between ~0.33 and ~0.66 when actually sticky
+        const sticky = progress > 0.25 && progress < 0.75;
+        setIsSticky(sticky);
+
+        // Only update scroll progress when sticky
+        if (sticky) {
+          // Normalize progress to 0-1 range for the sticky portion
+          const normalizedProgress = (progress - 0.25) / 0.5;
+          setScrollProgress(Math.max(0, Math.min(1, normalizedProgress)));
+        }
+      } else {
+        setIsSticky(false);
+      }
+    };
+
+    let locomotiveScroll: any = null;
+    let intervalId: NodeJS.Timeout | null = null;
+    let attempts = 0;
+    const maxAttempts = 20; // Try for up to 2 seconds (20 * 100ms)
+
+    // Poll until Locomotive Scroll is ready
+    intervalId = setInterval(() => {
+      attempts++;
+      const scroll = (window as any).__locomotiveScroll;
+
+      if (scroll) {
+        console.log('Locomotive Scroll found, attaching fish scroll handler');
+        locomotiveScroll = scroll;
+        locomotiveScroll.on('scroll', handleScroll);
+        if (intervalId) clearInterval(intervalId);
+      } else if (attempts >= maxAttempts) {
+        console.log('Locomotive Scroll not found for fish after', maxAttempts, 'attempts');
+        if (intervalId) clearInterval(intervalId);
+      }
+    }, 100);
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      if (locomotiveScroll) {
+        locomotiveScroll.off('scroll', handleScroll);
+      }
+    };
+  }, []);
+
+  return (
+    <Section customHeight="300vh" className="">
+      <div
+        ref={containerRef}
+        id="fish-container"
+        data-scroll-id="fish-container"
+        className="w-full h-full relative"
+      >
+        <div
+          className="w-full h-screen pointer-events-none"
+          data-scroll
+          data-scroll-sticky
+          data-scroll-target="#fish-container"
+        >
+          <Bitmap3D
+            className="w-full h-full"
+            ambientIntensity={1.2}
+            directionalIntensity={2.5}
+            pointIntensity={2.0}
+          >
+            <SpinningFish scrollProgress={scrollProgress} isSticky={isSticky} />
+          </Bitmap3D>
+        </div>
+      </div>
+    </Section>
+  );
+};
+
+export default ProcessSection;
