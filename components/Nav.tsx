@@ -1,34 +1,34 @@
-"use client";
+'use client'
 
-import { FC } from "react";
-import Tab from "./Tab";
+import { FC } from 'react'
+import Tab from './Tab'
 
 interface NavProps {}
 
 const Nav: FC<NavProps> = () => {
-  return (
-    <nav className="fixed top-4 right-4 z-[100] cursor-auto">
-      <div className="bg-background/80 backdrop-blur-md rounded-full px-8 py-3">
-        <ul className="flex items-center gap-6">
-          <li>
-            <Tab href="/">H</Tab>
-          </li>
-          <li>
-            <Tab href="/manifesto">Manifesto</Tab>
-          </li>
-          <li>
-            <Tab href="/experience">Experience</Tab>
-          </li>
-          <li>
-            <Tab href="/contact">Contact</Tab>
-          </li>
-        </ul>
-      </div>
-    </nav>
-  );
-};
+    return (
+        <nav className="fixed top-4 right-4 z-[100] cursor-auto">
+            <div className="bg-background/80 backdrop-blur-md rounded-full px-8 py-3">
+                <ul className="flex items-center gap-6">
+                    <li>
+                        <Tab href="/">Home</Tab>
+                    </li>
+                    <li>
+                        <Tab href="/manifesto">Manifesto</Tab>
+                    </li>
+                    <li>
+                        <Tab href="/experience">Experience</Tab>
+                    </li>
+                    <li>
+                        <Tab href="/contact">Contact</Tab>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    )
+}
 
-export default Nav;
+export default Nav
 
 /* Original animated version - commented out
 const Nav: FC<NavProps> = () => {

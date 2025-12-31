@@ -7,7 +7,6 @@ import * as THREE from 'three'
 import Bitmap3D from '@/components/Bitmap3D'
 import CursorEffect from '@/components/CursorEffect'
 import Heading from '@/components/Heading'
-import Nav from '@/components/Nav'
 import Section from '@/components/Section'
 
 const SpinningEye: FC<{ mouseVelocity: number }> = ({ mouseVelocity }) => {
@@ -119,7 +118,11 @@ const HeroSection: FC = () => {
 
     return (
         <Section className="flex items-center justify-center flex-col">
-            <div ref={containerRef} id="hero-bitmap-container" className="absolute inset-0 pointer-events-none">
+            <div
+                ref={containerRef}
+                id="hero-bitmap-container"
+                className="absolute inset-0 pointer-events-none"
+            >
                 <Bitmap3D isVisible={isVisible}>
                     <SpinningEye mouseVelocity={mouseVelocity} />
                 </Bitmap3D>
@@ -129,7 +132,6 @@ const HeroSection: FC = () => {
                 bringing back, <br />
                 what has been forgotten.
             </Heading>
-            <Nav />
         </Section>
     )
 }

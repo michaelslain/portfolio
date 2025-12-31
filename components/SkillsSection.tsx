@@ -137,7 +137,7 @@ const SkillsSection: FC = () => {
         >
             <BackgroundGrid style="-|" oddColumns={true} />
             <Heading level="h2" className="relative z-10">
-                skills
+                <i>some</i> of my skills
             </Heading>
             <div className="relative z-10 w-full">
                 {alignWithGrid && columnPositions.length > 0 ? (

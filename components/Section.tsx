@@ -17,7 +17,7 @@ const Section: FC<SectionProps> = ({
     ? ""
     : fullHeight
       ? "h-screen"
-      : "min-h-screen";
+      : "";
   const heightStyle = customHeight ? { height: customHeight } : {};
 
   return (
