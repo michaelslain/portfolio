@@ -49,8 +49,36 @@ const SpinningEye: FC<{ mouseVelocity: number }> = ({ mouseVelocity }) => {
 
 const HeroSection: FC = () => {
     const [mouseVelocity, setMouseVelocity] = useState(0)
+    const [isVisible, setIsVisible] = useState(true)
+    const containerRef = useRef<HTMLDivElement>(null)
     const lastMousePos = useRef({ x: 0, y: 0 })
     const lastTime = useRef(Date.now())
+
+    useEffect(() => {
+        if (!containerRef.current) return
+
+        const element = containerRef.current
+        element.setAttribute('data-scroll', '')
+
+        const handleScroll = (args: any) => {
+            const inView = args.currentElements?.[element.id]
+            if (inView) {
+                setIsVisible(true)
+            } else {
+                setIsVisible(false)
+            }
+        }
+
+        const locomotiveScroll = (window as any).__locomotiveScroll
+
+        if (locomotiveScroll) {
+            locomotiveScroll.on('scroll', handleScroll)
+
+            return () => {
+                locomotiveScroll.off('scroll', handleScroll)
+            }
+        }
+    }, [])
 
     useEffect(() => {
         let rafId: number | null = null
@@ -91,9 +119,11 @@ const HeroSection: FC = () => {
 
     return (
         <Section className="flex items-center justify-center flex-col">
-            <Bitmap3D>
-                <SpinningEye mouseVelocity={mouseVelocity} />
-            </Bitmap3D>
+            <div ref={containerRef} id="hero-bitmap-container" className="absolute inset-0 pointer-events-none">
+                <Bitmap3D isVisible={isVisible}>
+                    <SpinningEye mouseVelocity={mouseVelocity} />
+                </Bitmap3D>
+            </div>
             <CursorEffect />
             <Heading level="h1">
                 bringing back, <br />

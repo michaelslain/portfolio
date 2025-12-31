@@ -9,7 +9,7 @@ const AsciiVideoSection: FC = () => {
   const preRef = useRef<HTMLPreElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 100, height: 50 });
-  const [isVisible, setIsVisible] = useState(true); // Always visible for now
+  const [isVisible, setIsVisible] = useState(true);
   const lastFrameTime = useRef(0);
   const TARGET_FPS = 15;
   const charSize = 20;

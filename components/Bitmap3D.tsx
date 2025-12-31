@@ -80,6 +80,7 @@ interface Bitmap3DProps {
   ambientIntensity?: number;
   directionalIntensity?: number;
   pointIntensity?: number;
+  isVisible?: boolean;
 }
 
 const Bitmap3D: FC<Bitmap3DProps> = ({
@@ -88,6 +89,7 @@ const Bitmap3D: FC<Bitmap3DProps> = ({
   ambientIntensity = 0.3,
   directionalIntensity = 1.2,
   pointIntensity = 0.8,
+  isVisible = true,
 }) => {
   const effect = useMemo(() => new HalftoneEffectImpl(), []);
 
@@ -102,7 +104,7 @@ const Bitmap3D: FC<Bitmap3DProps> = ({
           alpha: true,
         }}
         dpr={1}
-        frameloop="demand"
+        frameloop={isVisible ? "always" : "never"}
       >
         <ambientLight intensity={ambientIntensity} />
         <directionalLight position={[5, 5, 5]} intensity={directionalIntensity} />
