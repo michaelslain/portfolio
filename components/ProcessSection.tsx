@@ -124,7 +124,7 @@ const ProcessSection: FC = () => {
     }, [])
 
     return (
-        <Section customHeight="300vh" className="">
+        <Section customHeight="300vh" className="mt-64">
             <Heading
                 level="h1"
                 className="absolute top-8 left-8 md:left-16 lg:left-24 z-20"
@@ -136,9 +136,7 @@ const ProcessSection: FC = () => {
                 id="fish-container"
                 className="w-full h-full relative"
             >
-                <div
-                    className="w-full h-screen sticky top-0 pointer-events-none"
-                >
+                <div className="w-full h-screen sticky top-0 pointer-events-none">
                     <Bitmap3D
                         className="w-full h-full"
                         ambientIntensity={1.2}

@@ -7,7 +7,7 @@ interface NumberProps extends React.HTMLAttributes<HTMLParagraphElement> {
 const Number: FC<NumberProps> = ({ children, className = '', ...props }) => {
     return (
         <p
-            className={`font-mono md:text-lg text-accent ${className}`}
+            className={`font-mono  md:text-s text-accent ${className}`}
             {...props}
         >
             {children}

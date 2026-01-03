@@ -14,6 +14,7 @@ gsap.registerPlugin(ScrollTrigger)
 interface Experience {
     id: string
     company: string
+    companyType?: string
     title: string
     period: string
     description: string[]
@@ -22,7 +23,7 @@ interface Experience {
 const experiences: Experience[] = [
     {
         id: '1',
-        company: 'Freelance Web Developer',
+        company: 'Freelance',
         title: 'Web Developer',
         period: '2019-2026',
         description: [
@@ -34,7 +35,8 @@ const experiences: Experience[] = [
     },
     {
         id: '2',
-        company: 'BSide (music magazine)',
+        company: 'BSide',
+        companyType: 'music magazine',
         title: 'Designer, Web Developer',
         period: '2025-2026',
         description: [
@@ -45,7 +47,8 @@ const experiences: Experience[] = [
     },
     {
         id: '3',
-        company: 'Beetle in a Box (philosophy journal)',
+        company: 'Beetle in a Box',
+        companyType: 'philosophy journal',
         title: 'Designer, Lead Web Developer, Writer',
         period: '2025-2026',
         description: [
@@ -57,7 +60,8 @@ const experiences: Experience[] = [
     },
     {
         id: '4',
-        company: 'Doron Studio (design studio)',
+        company: 'Doron Studio',
+        companyType: 'design studio',
         title: 'Intern',
         period: '2023-2024',
         description: [
@@ -68,7 +72,8 @@ const experiences: Experience[] = [
     },
     {
         id: '5',
-        company: 'NextStep (business consulting firm)',
+        company: 'NextStep',
+        companyType: 'business consulting firm',
         title: 'Intern',
         period: '2023',
         description: [
@@ -80,13 +85,16 @@ const experiences: Experience[] = [
 ]
 
 const ExperienceSection: FC = () => {
+    const wrapperRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const slidesRef = useRef<HTMLDivElement>(null)
     const totalSlides = experiences.length
 
     useEffect(() => {
-        if (!containerRef.current || !slidesRef.current) return
+        if (!wrapperRef.current || !containerRef.current || !slidesRef.current)
+            return
 
+        const wrapper = wrapperRef.current
         const container = containerRef.current
         const slides = slidesRef.current
 
@@ -94,16 +102,27 @@ const ExperienceSection: FC = () => {
         const initAnimation = setTimeout(() => {
             // V5 doesn't require scrollerProxy - works directly with window scroll
             const tween = gsap.to(slides, {
-                xPercent: -100 * totalSlides, // Includes title slide
+                x: () => -(slides.scrollWidth - window.innerWidth), // Move exactly to show last slide
                 ease: 'none',
                 scrollTrigger: {
-                    trigger: container,
-                    pin: true,
+                    trigger: wrapper,
+                    pin: container,
                     scrub: 1,
                     start: 'top top',
-                    end: () => `+=${slides.scrollWidth - window.innerWidth}`,
+                    end: 'bottom bottom-=50', // End slightly before bottom to ensure animation completes
                     invalidateOnRefresh: true,
-                }
+
+                    // Lenient snap scrolling - snap to each slide position
+                    snap: {
+                        snapTo: Array.from(
+                            { length: totalSlides + 1 },
+                            (_, i) => i / totalSlides
+                        ),
+                        duration: { min: 0.3, max: 0.8 },
+                        delay: 0.2,
+                        ease: 'power1.inOut',
+                    },
+                },
             })
 
             return () => {
@@ -118,86 +137,90 @@ const ExperienceSection: FC = () => {
     }, [totalSlides])
 
     return (
-        <Section customHeight={`${totalSlides * 50}vh`} className="">
+        <div ref={wrapperRef} style={{ height: `${totalSlides * 100}vh` }}>
             <div
                 ref={containerRef}
-                className="relative"
+                className="relative h-screen overflow-hidden"
             >
-                <div
-                    ref={slidesRef}
-                    className="flex w-fit h-screen"
-                >
+                <div ref={slidesRef} className="flex w-fit h-screen relative">
+                    {/* Timeline Arrow - inside the sliding container, spans from center of first to center of last slide */}
+                    <div
+                        className="absolute top-[60%] pointer-events-none z-10"
+                        style={{
+                            left: '50vw',
+                            width: `calc(${
+                                experiences.length * 100
+                            }vw - 100vw)`,
+                        }}
+                    >
+                        {/* Arrow and continuous dashed line with 25px intervals */}
+                        <span className="font-mono text-accent text-xs absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2">
+                            &lt;
+                        </span>
+                        {Array.from({
+                            length: Math.ceil(
+                                (experiences.length * window.innerWidth) / 25
+                            ),
+                        }).map((_, i) => (
+                            <span
+                                key={i}
+                                className="font-mono text-accent text-xs absolute"
+                                style={{
+                                    left: `${(i + 1) * 25}px`,
+                                    top: '0',
+                                    transform: 'translate(-50%, -50%)',
+                                }}
+                            >
+                                -
+                            </span>
+                        ))}
+                    </div>
+
                     {/* Title Slide */}
                     <div className="w-screen h-screen flex flex-col items-center justify-center px-8 shrink-0 relative">
                         <Heading level="h1" className="text-6xl md:text-8xl">
                             experience
                         </Heading>
-                        <div className="absolute right-12 bottom-12">
-                            <Text className="text-accent text-4xl">→</Text>
-                        </div>
                     </div>
 
                     {/* Experience Slides */}
-                    {experiences.map((experience, index) => (
+                    {experiences.map(experience => (
                         <div
                             key={experience.id}
                             className="w-screen h-screen flex flex-col items-center justify-center px-8 shrink-0 relative"
                         >
-                            <div className="max-w-3xl w-full space-y-8">
+                            {/* Content above timeline */}
+                            <div className="max-w-3xl w-full space-y-6 -mt-20">
                                 <div className="text-center space-y-4">
-                                    <Number className="text-2xl text-accent">
-                                        {experience.period}
-                                    </Number>
-                                    <Heading
-                                        level="h1"
-                                        className="text-5xl"
-                                    >
-                                        {experience.company}
-                                    </Heading>
-                                    <Text className="text-2xl italic opacity-70">
+                                    <Heading level="h2">
                                         {experience.title}
-                                    </Text>
+                                    </Heading>
+                                    <div className="flex flex-col items-center gap-1">
+                                        <Number>{experience.company}</Number>
+                                        {experience.companyType && (
+                                            <Number className=" opacity-50 italic">
+                                                {experience.companyType}
+                                            </Number>
+                                        )}
+                                    </div>
                                 </div>
 
-                                <ul className="space-y-4 mt-12">
-                                    {experience.description.map(
-                                        (item, i) => (
-                                            <li
-                                                key={i}
-                                                className="flex gap-4 items-start"
-                                            >
-                                                <Text className="text-accent text-xl">
-                                                    •
-                                                </Text>
-                                                <Text className="text-lg">
-                                                    {item}
-                                                </Text>
-                                            </li>
-                                        )
-                                    )}
-                                </ul>
+                                <div className="mt-8">
+                                    <Text className="text-lg leading-relaxed">
+                                        {experience.description.join(' ')}
+                                    </Text>
+                                </div>
                             </div>
 
-                            {/* Arrow to next slide */}
-                            {index < experiences.length - 1 && (
-                                <div className="absolute right-12 bottom-12">
-                                    <Text className="text-accent text-4xl">
-                                        →
-                                    </Text>
-                                </div>
-                            )}
-
-                            {/* Slide indicator */}
-                            <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
-                                <Text className="text-sm opacity-50">
-                                    {index + 2} / {experiences.length + 1}
-                                </Text>
+                            {/* Date below timeline */}
+                            <div className="absolute bottom-[35%] left-1/2 -translate-x-1/2">
+                                <Number>{experience.period}</Number>
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
-        </Section>
+        </div>
     )
 }
 
