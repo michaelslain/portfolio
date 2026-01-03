@@ -24,7 +24,6 @@ const Section: FC<SectionProps> = ({
     <div
       className={`w-screen relative ${heightClass} ${className}`}
       style={heightStyle}
-      data-scroll-section
     >
       {children}
     </div>

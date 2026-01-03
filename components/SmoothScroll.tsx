@@ -9,6 +9,10 @@ import {
   useContext,
 } from "react";
 import { usePathname } from "next/navigation";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface ScrollContextType {
   scroll: any | null;
@@ -23,7 +27,6 @@ interface SmoothScrollProps {
 }
 
 const SmoothScroll: FC<SmoothScrollProps> = ({ children }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const scrollInstance = useRef<any>(null);
 
@@ -31,18 +34,18 @@ const SmoothScroll: FC<SmoothScrollProps> = ({ children }) => {
     let scroll: any;
 
     const initScroll = async () => {
-      if (!scrollRef.current) return;
-
       // Wait for DOM to be fully ready
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const LocomotiveScroll = (await import("locomotive-scroll")).default;
 
+      // V5 uses simplified initialization with scrollCallback option
       scroll = new LocomotiveScroll({
-        el: scrollRef.current,
-        smooth: true,
-        multiplier: 1,
-        class: "is-inview",
+        lenisOptions: {
+          duration: 1.2,
+          smoothWheel: true,
+        },
+        scrollCallback: ScrollTrigger.update,
       });
 
       scrollInstance.current = scroll;
@@ -50,17 +53,9 @@ const SmoothScroll: FC<SmoothScrollProps> = ({ children }) => {
       // Expose scroll instance globally for other components
       (window as any).__locomotiveScroll = scroll;
 
-      // Multiple updates to ensure DOM is fully rendered
+      // Refresh ScrollTrigger after initialization
       setTimeout(() => {
-        if (scroll) scroll.update();
-      }, 100);
-
-      setTimeout(() => {
-        if (scroll) scroll.update();
-      }, 500);
-
-      setTimeout(() => {
-        if (scroll) scroll.update();
+        ScrollTrigger.refresh();
       }, 1000);
     };
 
@@ -68,12 +63,7 @@ const SmoothScroll: FC<SmoothScrollProps> = ({ children }) => {
 
     // Update on window resize
     const handleResize = () => {
-      if (scroll) {
-        // Call update multiple times to catch layout changes
-        scroll.update();
-        setTimeout(() => scroll.update(), 100);
-        setTimeout(() => scroll.update(), 300);
-      }
+      ScrollTrigger.refresh();
     };
 
     let resizeTimeout: NodeJS.Timeout;
@@ -86,6 +76,7 @@ const SmoothScroll: FC<SmoothScrollProps> = ({ children }) => {
 
     return () => {
       window.removeEventListener("resize", debouncedResize);
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
       if (scroll) {
         scroll.destroy();
         (window as any).__locomotiveScroll = null;
@@ -93,18 +84,7 @@ const SmoothScroll: FC<SmoothScrollProps> = ({ children }) => {
     };
   }, [pathname]);
 
-  return (
-    <div
-      ref={scrollRef}
-      data-scroll-container
-      style={{
-        overflow: "visible",
-        perspective: "1px",
-      }}
-    >
-      {children}
-    </div>
-  );
+  return <ScrollContext.Provider value={{ scroll: scrollInstance.current }}>{children}</ScrollContext.Provider>;
 };
 
 export default SmoothScroll;

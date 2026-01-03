@@ -1,12 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    turbo: {
-      resolveAlias: {
-        "framer-motion": "framer-motion",
-      },
+  turbopack: {
+    resolveAlias: {
+      "framer-motion": "framer-motion",
     },
+    root: process.cwd(),
   },
   transpilePackages: ["framer-motion"],
 };

@@ -185,7 +185,7 @@ const CursorEffect: FC = () => {
   }, [isMouseMoving]);
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-0">
+    <div className="absolute inset-0 pointer-events-none z-0">
       <svg
         className="absolute inset-0 w-full h-full"
         style={{ overflow: "visible" }}
@@ -306,7 +306,7 @@ const CursorEffect: FC = () => {
               transition={{ duration: 0.3 }}
             >
               <Text
-                className="text-[#b00020]"
+                className="text-accent"
                 style={{
                   fontStyle: isNewest ? "italic" : "normal",
                 }}

@@ -8,6 +8,7 @@ import Bitmap3D from '@/components/Bitmap3D'
 import Section from '@/components/Section'
 import Text from '@/components/Text'
 import Heading from '@/components/Heading'
+import Number from '@/components/Number'
 
 const SpinningFish: FC<{ scrollProgress: number; isSticky: boolean }> = ({
     scrollProgress,
@@ -29,6 +30,7 @@ const SpinningFish: FC<{ scrollProgress: number; isSticky: boolean }> = ({
 
     useFrame(() => {
         if (groupRef.current && isSticky) {
+            // Rotate based on scroll progress (tied directly to scroll position)
             const rotation = scrollProgress * Math.PI * 2
             groupRef.current.rotation.y = rotation
         }
@@ -52,64 +54,71 @@ const ProcessSection: FC = () => {
         const element = containerRef.current
         if (!element) return
 
-        element.setAttribute('data-scroll', '')
+        const handleScroll = () => {
+            const rect = element.getBoundingClientRect()
+            const windowHeight = window.innerHeight
+            const elementHeight = element.offsetHeight
 
-        const handleScroll = (args: any) => {
-            const elementProgress = args.currentElements?.['fish-container']
+            // Calculate when element is in viewport
+            const elementTop = rect.top
+            const elementBottom = rect.bottom
 
-            if (elementProgress) {
-                const progress = elementProgress.progress || 0
-                console.log('Fish scroll progress:', progress)
+            // Progress from 0 to 1 as element scrolls through viewport
+            let progress = 0
 
-                // Fish becomes sticky when we're scrolling through the section
-                // Progress should be between ~0.33 and ~0.66 when actually sticky
-                const sticky = progress > 0.25 && progress < 0.75
-                setIsSticky(sticky)
+            if (elementTop <= windowHeight && elementBottom >= 0) {
+                // Element is in viewport
+                const totalScrollableHeight = elementHeight + windowHeight
+                const scrolledAmount = windowHeight - elementTop
+                progress = scrolledAmount / totalScrollableHeight
+            }
 
-                // Only update scroll progress when sticky
-                if (sticky) {
-                    // Normalize progress to 0-1 range for the sticky portion
-                    const normalizedProgress = (progress - 0.25) / 0.5
-                    setScrollProgress(
-                        Math.max(0, Math.min(1, normalizedProgress))
-                    )
-                }
-            } else {
-                setIsSticky(false)
+            // Fish becomes sticky when scrolling through middle section
+            const sticky = progress > 0.25 && progress < 0.75
+            setIsSticky(sticky)
+
+            // Update scroll progress when sticky OR when in view
+            if (sticky) {
+                const normalizedProgress = (progress - 0.25) / 0.5
+                setScrollProgress(Math.max(0, Math.min(1, normalizedProgress)))
+            } else if (progress > 0 && progress <= 1) {
+                // Update progress even when not sticky
+                setScrollProgress(Math.max(0, Math.min(1, progress)))
             }
         }
 
         let locomotiveScroll: any = null
         let intervalId: NodeJS.Timeout | null = null
         let attempts = 0
-        const maxAttempts = 20 // Try for up to 2 seconds (20 * 100ms)
+        const maxAttempts = 20
 
-        // Poll until Locomotive Scroll is ready
+        // Poll until Locomotive Scroll v5 is ready
         intervalId = setInterval(() => {
             attempts++
             const scroll = (window as any).__locomotiveScroll
 
             if (scroll) {
-                console.log(
-                    'Locomotive Scroll found, attaching fish scroll handler'
-                )
                 locomotiveScroll = scroll
-                locomotiveScroll.on('scroll', handleScroll)
+                // V5 wraps Lenis - access lenisInstance for scroll events
+                if (locomotiveScroll.lenisInstance) {
+                    locomotiveScroll.lenisInstance.on('scroll', handleScroll)
+                }
+                handleScroll() // Initial call
                 if (intervalId) clearInterval(intervalId)
             } else if (attempts >= maxAttempts) {
-                console.log(
-                    'Locomotive Scroll not found for fish after',
-                    maxAttempts,
-                    'attempts'
-                )
+                // Fallback to native scroll if Locomotive isn't available
+                window.addEventListener('scroll', handleScroll)
+                handleScroll() // Initial call
                 if (intervalId) clearInterval(intervalId)
             }
         }, 100)
 
         return () => {
             if (intervalId) clearInterval(intervalId)
-            if (locomotiveScroll) {
-                locomotiveScroll.off('scroll', handleScroll)
+            if (locomotiveScroll && locomotiveScroll.lenisInstance) {
+                locomotiveScroll.lenisInstance.off('scroll', handleScroll)
+            } else {
+                window.removeEventListener('scroll', handleScroll)
             }
         }
     }, [])
@@ -125,14 +134,10 @@ const ProcessSection: FC = () => {
             <div
                 ref={containerRef}
                 id="fish-container"
-                data-scroll-id="fish-container"
                 className="w-full h-full relative"
             >
                 <div
-                    className="w-full h-screen pointer-events-none"
-                    data-scroll
-                    data-scroll-sticky
-                    data-scroll-target="#fish-container"
+                    className="w-full h-screen sticky top-0 pointer-events-none"
                 >
                     <Bitmap3D
                         className="w-full h-full"
@@ -151,9 +156,7 @@ const ProcessSection: FC = () => {
                 {/* First Text - Left */}
                 <div className="absolute left-8 md:left-16 lg:left-24 top-[20%] pointer-events-auto z-10 max-w-md">
                     <div className="bg-background/80 p-4 rounded">
-                        <Text className="font-mono md:text-lg text-accent">
-                            01.
-                        </Text>
+                        <Number>01.</Number>
                         <Text>
                             Lorem ipsum dolor sit amet, consectetur adipiscing
                             elit, sed do eiusmod tempor incididunt ut labore et
@@ -171,9 +174,7 @@ const ProcessSection: FC = () => {
                 {/* Second Text - Right */}
                 <div className="absolute right-8 md:right-16 lg:right-24 top-[40%] pointer-events-auto z-10 max-w-md">
                     <div className="bg-background/80 p-4 rounded">
-                        <Text className="font-mono md:text-lg text-accent">
-                            02.
-                        </Text>
+                        <Number>02.</Number>
                         <Text>
                             Lorem ipsum dolor sit amet, consectetur adipiscing
                             elit, sed do eiusmod tempor incididunt ut labore et
@@ -191,9 +192,7 @@ const ProcessSection: FC = () => {
                 {/* Third Text - Left */}
                 <div className="absolute left-8 md:left-16 lg:left-24 top-[60%] pointer-events-auto z-10 max-w-md">
                     <div className="bg-background/80 p-4 rounded">
-                        <Text className="font-mono md:text-lg text-accent">
-                            03.
-                        </Text>
+                        <Number>03.</Number>
                         <Text>
                             Lorem ipsum dolor sit amet, consectetur adipiscing
                             elit, sed do eiusmod tempor incididunt ut labore et

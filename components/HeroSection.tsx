@@ -49,32 +49,47 @@ const SpinningEye: FC<{ mouseVelocity: number }> = ({ mouseVelocity }) => {
 const HeroSection: FC = () => {
     const [mouseVelocity, setMouseVelocity] = useState(0)
     const [isVisible, setIsVisible] = useState(true)
-    const containerRef = useRef<HTMLDivElement>(null)
+    const sectionRef = useRef<HTMLDivElement>(null)
     const lastMousePos = useRef({ x: 0, y: 0 })
     const lastTime = useRef(Date.now())
 
     useEffect(() => {
-        if (!containerRef.current) return
+        const handleScroll = () => {
+            if (!sectionRef.current) return
 
-        const element = containerRef.current
-        element.setAttribute('data-scroll', '')
+            const rect = sectionRef.current.getBoundingClientRect()
+            const windowHeight = window.innerHeight
 
-        const handleScroll = (args: any) => {
-            const inView = args.currentElements?.[element.id]
-            if (inView) {
-                setIsVisible(true)
-            } else {
-                setIsVisible(false)
-            }
+            // Keep visible until 200vh below section start has scrolled past
+            const extendedBottom = rect.top + windowHeight * 2
+            const inView = rect.top < windowHeight && extendedBottom > 0
+            setIsVisible(inView)
         }
 
-        const locomotiveScroll = (window as any).__locomotiveScroll
+        let locomotiveScroll: any = null
+        let timeoutId: NodeJS.Timeout | null = null
 
-        if (locomotiveScroll) {
-            locomotiveScroll.on('scroll', handleScroll)
+        // Wait for Locomotive Scroll v5 to initialize
+        timeoutId = setTimeout(() => {
+            locomotiveScroll = (window as any).__locomotiveScroll
 
-            return () => {
-                locomotiveScroll.off('scroll', handleScroll)
+            if (locomotiveScroll && locomotiveScroll.lenisInstance) {
+                locomotiveScroll.lenisInstance.on('scroll', handleScroll)
+            } else {
+                // Fallback to native scroll
+                window.addEventListener('scroll', handleScroll)
+            }
+
+            // Initial check
+            handleScroll()
+        }, 100)
+
+        return () => {
+            if (timeoutId) clearTimeout(timeoutId)
+            if (locomotiveScroll && locomotiveScroll.lenisInstance) {
+                locomotiveScroll.lenisInstance.off('scroll', handleScroll)
+            } else {
+                window.removeEventListener('scroll', handleScroll)
             }
         }
     }, [])
@@ -117,22 +132,20 @@ const HeroSection: FC = () => {
     }, [])
 
     return (
-        <Section className="flex items-center justify-center flex-col">
-            <div
-                ref={containerRef}
-                id="hero-bitmap-container"
-                className="absolute inset-0 pointer-events-none"
-            >
-                <Bitmap3D isVisible={isVisible}>
-                    <SpinningEye mouseVelocity={mouseVelocity} />
-                </Bitmap3D>
-            </div>
-            <CursorEffect />
-            <Heading level="h1">
-                bringing back, <br />
-                what has been forgotten.
-            </Heading>
-        </Section>
+        <div ref={sectionRef} className="relative">
+            <Section className="flex items-center justify-center flex-col">
+                <div className="absolute top-0 left-0 w-screen h-[200vh] -z-50 pointer-events-none overflow-visible">
+                    <Bitmap3D className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden" isVisible={isVisible}>
+                        <SpinningEye mouseVelocity={mouseVelocity} />
+                    </Bitmap3D>
+                </div>
+                <CursorEffect />
+                <Heading level="h1">
+                    bringing back, <br />
+                    what has been forgotten.
+                </Heading>
+            </Section>
+        </div>
     )
 }
 
