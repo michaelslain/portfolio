@@ -52,12 +52,6 @@ const Nav: FC<NavProps> = () => {
             <div className="bg-background/80 backdrop-blur-md rounded-full px-8 py-3">
                 <ul className="flex items-center gap-6">
                     <li>
-                        <Tab href="#hero" onClick={(e) => {
-                            e.preventDefault()
-                            scrollToSection('hero')
-                        }}>Home</Tab>
-                    </li>
-                    <li>
                         <Tab href="#about" onClick={(e) => {
                             e.preventDefault()
                             scrollToSection('about')
@@ -70,22 +64,10 @@ const Nav: FC<NavProps> = () => {
                         }}>Skills</Tab>
                     </li>
                     <li>
-                        <Tab href="#experience" onClick={(e) => {
-                            e.preventDefault()
-                            scrollToSection('experience')
-                        }}>Experience</Tab>
-                    </li>
-                    <li>
                         <Tab href="#work" onClick={(e) => {
                             e.preventDefault()
                             scrollToSection('work')
                         }}>Work</Tab>
-                    </li>
-                    <li>
-                        <Tab href="#process" onClick={(e) => {
-                            e.preventDefault()
-                            scrollToSection('process')
-                        }}>Process</Tab>
                     </li>
                     <li>
                         <Tab href="#contact" onClick={(e) => {
