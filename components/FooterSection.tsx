@@ -18,7 +18,7 @@ const FooterSection: FC = () => {
     return (
         <Section
             fullHeight={false}
-            className="flex flex-col items-center gap-6 py-16 z-10"
+            className="flex flex-col items-center gap-6 py-16 z-10 -mt-48"
         >
             <Heading level="h2">learn more & reach out!</Heading>
             <div className="flex gap-8 flex-wrap justify-center">

@@ -1,7 +1,7 @@
 'use client'
 
 import type { FC } from 'react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Section from '@/components/Section'
@@ -89,6 +89,7 @@ const ExperienceSection: FC = () => {
     const containerRef = useRef<HTMLDivElement>(null)
     const slidesRef = useRef<HTMLDivElement>(null)
     const totalSlides = experiences.length
+    const [scrollNumber, setScrollNumber] = useState(100)
 
     useEffect(() => {
         if (!wrapperRef.current || !containerRef.current || !slidesRef.current)
@@ -111,6 +112,11 @@ const ExperienceSection: FC = () => {
                     start: 'top top',
                     end: 'bottom bottom-=50', // End slightly before bottom to ensure animation completes
                     invalidateOnRefresh: true,
+                    onUpdate: self => {
+                        // Update scroll number from 100 to 0 (counting backwards)
+                        const progress = (1 - self.progress) * 100
+                        setScrollNumber(Math.floor(progress))
+                    },
 
                     // Lenient snap scrolling - snap to each slide position
                     snap: {
@@ -142,12 +148,22 @@ const ExperienceSection: FC = () => {
                 ref={containerRef}
                 className="relative h-screen overflow-hidden"
             >
-                <div ref={slidesRef} className="flex w-fit h-screen relative">
-                    {/* Timeline Arrow - inside the sliding container, spans from center of first to center of last slide */}
+                {/* Large background number */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 opacity-20">
+                    <Number className="text-[40vw] leading-none font-light">
+                        {String(scrollNumber).padStart(3, '0')}
+                    </Number>
+                </div>
+
+                <div
+                    ref={slidesRef}
+                    className="flex w-fit h-screen relative z-10"
+                >
+                    {/* Timeline Arrow - inside the sliding container, aligned with date position */}
                     <div
-                        className="absolute top-[60%] pointer-events-none z-10"
+                        className="absolute bottom-[35%] pointer-events-none z-10"
                         style={{
-                            left: '50vw',
+                            left: 'calc(50vw - 224px)',
                             width: `calc(${
                                 experiences.length * 100
                             }vw - 100vw)`,
@@ -189,32 +205,38 @@ const ExperienceSection: FC = () => {
                             key={experience.id}
                             className="w-screen h-screen flex flex-col items-center justify-center px-8 shrink-0 relative"
                         >
-                            {/* Content above timeline */}
-                            <div className="max-w-3xl w-full space-y-6 -mt-20">
-                                <div className="text-center space-y-4">
-                                    <Heading level="h2">
-                                        {experience.title}
-                                    </Heading>
-                                    <div className="flex flex-col items-center gap-1">
-                                        <Number>{experience.company}</Number>
-                                        {experience.companyType && (
-                                            <Number className=" opacity-50 italic">
-                                                {experience.companyType}
+                            <div className="max-w-md w-full relative">
+                                {/* Content above timeline */}
+                                <div className="space-y-6">
+                                    <div className="space-y-4">
+                                        <Heading level="h2">
+                                            {experience.title}
+                                        </Heading>
+                                        <div className="flex flex-col gap-1">
+                                            <Number>
+                                                {experience.company}
                                             </Number>
-                                        )}
+                                            {experience.companyType && (
+                                                <Number className=" opacity-50 italic">
+                                                    {experience.companyType}
+                                                </Number>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="mt-8">
-                                    <Text className="text-lg leading-relaxed">
-                                        {experience.description.join(' ')}
-                                    </Text>
+                                    <div className="mt-8">
+                                        <Text className="text-lg leading-relaxed">
+                                            {experience.description.join(' ')}
+                                        </Text>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Date below timeline */}
-                            <div className="absolute bottom-[35%] left-1/2 -translate-x-1/2">
-                                <Number>{experience.period}</Number>
+                            <div className="absolute bottom-[calc(35%-3rem)] left-1/2 -translate-x-1/2 w-full flex justify-center px-8">
+                                <div className="max-w-md w-full">
+                                    <Number>{experience.period}</Number>
+                                </div>
                             </div>
                         </div>
                     ))}
