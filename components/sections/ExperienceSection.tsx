@@ -8,6 +8,7 @@ import Section from '@/components/Section'
 import Heading from '@/components/Heading'
 import Text from '@/components/Text'
 import Number from '@/components/Number'
+import TimelineDashes from '@/components/TimelineDashes'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -160,37 +161,7 @@ const ExperienceSection: FC = () => {
                     className="flex w-fit h-screen relative z-10"
                 >
                     {/* Timeline Arrow - inside the sliding container, aligned with date position */}
-                    <div
-                        className="absolute bottom-[35%] pointer-events-none z-10"
-                        style={{
-                            left: 'calc(50vw - 224px)',
-                            width: `calc(${
-                                experiences.length * 100
-                            }vw - 100vw)`,
-                        }}
-                    >
-                        {/* Arrow and continuous dashed line with 25px intervals */}
-                        <span className="font-mono text-accent text-xs absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2">
-                            &lt;
-                        </span>
-                        {Array.from({
-                            length: Math.ceil(
-                                (experiences.length * window.innerWidth) / 25
-                            ),
-                        }).map((_, i) => (
-                            <span
-                                key={i}
-                                className="font-mono text-accent text-xs absolute"
-                                style={{
-                                    left: `${(i + 1) * 25}px`,
-                                    top: '0',
-                                    transform: 'translate(-50%, -50%)',
-                                }}
-                            >
-                                -
-                            </span>
-                        ))}
-                    </div>
+                    <TimelineDashes experienceCount={experiences.length} />
 
                     {/* Title Slide */}
                     <div className="w-screen h-screen flex flex-col items-center justify-center px-8 shrink-0 relative">

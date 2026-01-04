@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState, useRef, useEffect } from "react";
+import { FC, useState, useRef, useEffect, useMemo } from "react";
 
 interface ArcSliderProps {
   onModeChange?: (isDetailed: boolean) => void;
@@ -146,15 +146,20 @@ const ArcSlider: FC<ArcSliderProps> = ({ onModeChange }) => {
     };
   }, []);
 
-  // Track mouse position for eye following
+  // Track mouse position for eye following - optimized with throttling
   useEffect(() => {
     let rafId: number | null = null;
+    let lastUpdateTime = 0;
+    const throttleMs = 50; // Update at most every 50ms (20fps for eye movement is enough)
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (rafId !== null) return; // Throttle to one update per frame
+      const now = performance.now();
+
+      if (rafId !== null || now - lastUpdateTime < throttleMs) return;
 
       rafId = requestAnimationFrame(() => {
         setMousePos({ x: e.clientX, y: e.clientY });
+        lastUpdateTime = performance.now();
         rafId = null;
       });
     };
@@ -166,8 +171,8 @@ const ArcSlider: FC<ArcSliderProps> = ({ onModeChange }) => {
     };
   }, []);
 
-  // Calculate unified pupil position based on mouse position relative to both eyes
-  const calculateUnifiedPupilPosition = () => {
+  // Calculate unified pupil position based on mouse position relative to both eyes - memoized
+  const pupilPosition = useMemo(() => {
     if (!leftEyeRef.current || !rightEyeRef.current) return { x: 0, y: 0 };
 
     const leftRect = leftEyeRef.current.getBoundingClientRect();
@@ -197,9 +202,8 @@ const ArcSlider: FC<ArcSliderProps> = ({ onModeChange }) => {
     const pupilY = Math.sin(angle) * normalizedDistance * maxDistanceY;
 
     return { x: pupilX, y: pupilY };
-  };
+  }, [mousePos.x, mousePos.y]);
 
-  const pupilPosition = calculateUnifiedPupilPosition();
   const leftPupil = pupilPosition;
   const rightPupil = pupilPosition;
 
