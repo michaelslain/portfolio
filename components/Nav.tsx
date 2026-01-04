@@ -2,25 +2,96 @@
 
 import { FC } from 'react'
 import Tab from './Tab'
+import { useLocomotiveScroll } from './SmoothScroll'
 
 interface NavProps {}
 
 const Nav: FC<NavProps> = () => {
+    const { scroll } = useLocomotiveScroll()
+
+    const scrollToSection = (sectionId: string) => {
+        const element = document.getElementById(sectionId)
+        if (element) {
+            // Use Locomotive Scroll v5 API
+            const locomotiveScroll = (window as any).__locomotiveScroll
+
+            console.log('Locomotive Scroll instance:', locomotiveScroll)
+            console.log('Has scrollTo method:', locomotiveScroll?.scrollTo)
+            console.log('Lenis instance:', locomotiveScroll?.lenisInstance)
+            console.log('Target element:', element)
+
+            if (locomotiveScroll) {
+                // Try accessing Lenis instance directly for smoother scrolling
+                if (locomotiveScroll.lenisInstance && locomotiveScroll.lenisInstance.scrollTo) {
+                    console.log('Calling Lenis scrollTo')
+                    locomotiveScroll.lenisInstance.scrollTo(element, {
+                        duration: 1.2,
+                        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                    })
+                } else if (locomotiveScroll.scrollTo) {
+                    // V5 API - scrollTo(target, options)
+                    console.log('Calling Locomotive scrollTo')
+                    locomotiveScroll.scrollTo(element, {
+                        duration: 1000,
+                        easing: [0.25, 0.0, 0.35, 1.0],
+                        disableLerp: false,
+                    })
+                } else {
+                    console.log('Falling back to native scroll')
+                    element.scrollIntoView({ behavior: 'smooth' })
+                }
+            } else {
+                console.log('No locomotive scroll instance, using native')
+                element.scrollIntoView({ behavior: 'smooth' })
+            }
+        }
+    }
+
     return (
         <nav className="fixed top-4 right-4 z-[100] cursor-auto">
             <div className="bg-background/80 backdrop-blur-md rounded-full px-8 py-3">
                 <ul className="flex items-center gap-6">
                     <li>
-                        <Tab href="/">Home</Tab>
+                        <Tab href="#hero" onClick={(e) => {
+                            e.preventDefault()
+                            scrollToSection('hero')
+                        }}>Home</Tab>
                     </li>
                     <li>
-                        <Tab href="/manifesto">Manifesto</Tab>
+                        <Tab href="#about" onClick={(e) => {
+                            e.preventDefault()
+                            scrollToSection('about')
+                        }}>About</Tab>
                     </li>
                     <li>
-                        <Tab href="/experience">Experience</Tab>
+                        <Tab href="#skills" onClick={(e) => {
+                            e.preventDefault()
+                            scrollToSection('skills')
+                        }}>Skills</Tab>
                     </li>
                     <li>
-                        <Tab href="/contact">Contact</Tab>
+                        <Tab href="#experience" onClick={(e) => {
+                            e.preventDefault()
+                            scrollToSection('experience')
+                        }}>Experience</Tab>
+                    </li>
+                    <li>
+                        <Tab href="#work" onClick={(e) => {
+                            e.preventDefault()
+                            scrollToSection('work')
+                        }}>Work</Tab>
+                    </li>
+                    <li>
+                        <Tab href="#process" onClick={(e) => {
+                            e.preventDefault()
+                            scrollToSection('process')
+                        }}>Process</Tab>
+                    </li>
+                    <li>
+                        <Tab href="#contact" onClick={(e) => {
+                            e.preventDefault()
+                            scrollToSection('contact')
+                        }}>Contact</Tab>
                     </li>
                 </ul>
             </div>

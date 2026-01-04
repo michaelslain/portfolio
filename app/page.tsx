@@ -11,22 +11,36 @@ import WorkSection from "@/components/sections/WorkSection";
 const Home: FC = () => {
   return (
     <div className="cursor-help">
-      <HeroSection />
+      <div id="hero">
+        <HeroSection />
+      </div>
 
       <div className="relative">
-        <AboutSection />
+        <div id="about">
+          <AboutSection />
+        </div>
         <AsciiVideoSection />
       </div>
 
-      <SkillsSection />
+      <div id="skills">
+        <SkillsSection />
+      </div>
 
-      <ExperienceSection />
+      <div id="experience">
+        <ExperienceSection />
+      </div>
 
-      <WorkSection />
+      <div id="work">
+        <WorkSection />
+      </div>
 
-      <ProcessSection />
+      <div id="process">
+        <ProcessSection />
+      </div>
 
-      <FooterSection />
+      <div id="contact">
+        <FooterSection />
+      </div>
     </div>
   );
 };

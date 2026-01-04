@@ -43,12 +43,12 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
 `;
 
 class HalftoneEffectImpl extends Effect {
-  constructor() {
+  constructor(accentColor: string = "#b00020") {
     super("HalftoneEffect", halftoneFragmentShader, {
       blendFunction: BlendFunction.NORMAL,
       uniforms: new Map([
         ["time", new THREE.Uniform(0)],
-        ["accentColor", new THREE.Uniform(new THREE.Color("#b00020"))],
+        ["accentColor", new THREE.Uniform(new THREE.Color(accentColor))],
         ["resolution", new THREE.Uniform(new THREE.Vector2(1920, 1080))],
       ]),
     });
@@ -91,7 +91,12 @@ const Bitmap3D: FC<Bitmap3DProps> = ({
   pointIntensity = 0.8,
   isVisible = true,
 }) => {
-  const effect = useMemo(() => new HalftoneEffectImpl(), []);
+  const effect = useMemo(() => {
+    const accentColor = typeof window !== 'undefined'
+      ? getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || "#b00020"
+      : "#b00020";
+    return new HalftoneEffectImpl(accentColor);
+  }, []);
 
   return (
     <div className={className}>

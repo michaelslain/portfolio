@@ -19,7 +19,7 @@ const WorkSection: FC = () => {
     const spacing = 100
 
     const colors = [
-        '#b00020', // accent red
+        'var(--accent)', // accent red
         '#ededed', // foreground white
         '#666666', // gray
         '#333333', // dark gray

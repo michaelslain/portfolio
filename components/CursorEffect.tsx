@@ -215,7 +215,7 @@ const CursorEffect: FC = () => {
                 y1={point1.y}
                 x2={point3.x}
                 y2={point3.y}
-                stroke="#b00020"
+                stroke="var(--accent)"
                 strokeWidth="1"
                 strokeDasharray="4 4"
                 opacity="0.3"
@@ -224,7 +224,7 @@ const CursorEffect: FC = () => {
               <motion.text
                 x={centroidX}
                 y={centroidY}
-                fill="#b00020"
+                fill="var(--accent)"
                 fontSize="12"
                 fontFamily="monospace"
                 textAnchor="middle"
@@ -250,7 +250,7 @@ const CursorEffect: FC = () => {
                 y={heading.y - 3}
                 width="6"
                 height="6"
-                fill="#b00020"
+                fill="var(--accent)"
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
@@ -265,7 +265,7 @@ const CursorEffect: FC = () => {
                 y1={prevHeading.y}
                 x2={heading.x}
                 y2={heading.y}
-                stroke="#b00020"
+                stroke="var(--accent)"
                 strokeWidth="2"
                 initial={{ pathLength: 0, opacity: 0 }}
                 animate={{ pathLength: 1, opacity: 1 }}
@@ -277,7 +277,7 @@ const CursorEffect: FC = () => {
                 y={heading.y - 3}
                 width="6"
                 height="6"
-                fill="#b00020"
+                fill="var(--accent)"
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: 0.1 }}
