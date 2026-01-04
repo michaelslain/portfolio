@@ -1,20 +1,21 @@
 "use client";
 
-import { FC, useState, ReactNode } from "react";
-import Link from "next/link";
+import { FC, useState, ReactNode, MouseEvent } from "react";
 
 interface TabProps {
   href: string;
   children: ReactNode;
+  onClick?: (e: MouseEvent<HTMLAnchorElement>) => void;
 }
 
-const Tab: FC<TabProps> = ({ href, children }) => {
+const Tab: FC<TabProps> = ({ href, children, onClick }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <Link
+    <a
       href={href}
-      className="relative text-sm inline-block"
+      onClick={onClick}
+      className="relative text-sm inline-block cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -31,7 +32,7 @@ const Tab: FC<TabProps> = ({ href, children }) => {
       >
         {children}
       </span>
-    </Link>
+    </a>
   );
 };
 
