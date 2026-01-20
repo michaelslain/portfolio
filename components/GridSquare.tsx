@@ -1,28 +1,45 @@
 import type { FC } from 'react'
+import React, { useState } from 'react'
+import DuoToneRectangle from './DuoToneRectangle'
 
 interface GridSquareProps {
-    size: number // Width in grid cells
-    height?: number // Height in grid cells (defaults to size for squares)
+    size: number
+    height?: number
     color: string
     col: number
     row: number
-    spacing: number // Grid spacing in pixels
+    spacing: number
+    imagePath?: string
 }
 
-const GridSquare: FC<GridSquareProps> = ({ size, height, color, col, row, spacing }) => {
+const GridSquare: FC<GridSquareProps> = ({ size, height, color, col, row, spacing, imagePath }) => {
+    const [extractedColor, setExtractedColor] = useState<string | null>(null)
+    const [isReady, setIsReady] = useState(false)
     const actualHeight = height ?? size
+    const width = size * spacing
+    const heightPx = actualHeight * spacing
 
     return (
         <div
-            className="absolute"
+            className="absolute overflow-hidden"
             style={{
                 left: `${col * spacing}px`,
                 top: `${row * spacing}px`,
-                width: `${size * spacing}px`,
-                height: `${actualHeight * spacing}px`,
-                backgroundColor: color,
+                width: `${width}px`,
+                height: `${heightPx}px`,
+                backgroundColor: extractedColor || color,
+                opacity: isReady ? 1 : 0,
+                transition: 'opacity 0.2s ease-in-out',
             }}
-        />
+        >
+            {imagePath && (
+                <DuoToneRectangle
+                    imagePath={imagePath}
+                    onColorExtracted={setExtractedColor}
+                    onReady={setIsReady}
+                />
+            )}
+        </div>
     )
 }
 
